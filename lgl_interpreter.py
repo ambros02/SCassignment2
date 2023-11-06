@@ -5,16 +5,19 @@ import json
 
 class LGL_Interpreter:
 
+    """This class provides an interpreter for the little german language.
+        It features multiple basic functionalities aswell as lists and dictionaries"""
 
     def __init__(self, source_code: list) -> None:
         """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
         self.code = source_code
-        self.dictionaries= {}
+        self.dictionaries = {}
 
     def run(self) -> None:
         """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method"""
 
         assert len(self.code) > 0, "there is no code to read"
+        #case only one operation is in the file
         if not isinstance(self.code[0],list):
             self.code = [self.code]
 
@@ -34,13 +37,15 @@ class LGL_Interpreter:
 
     def interpret(self, instruction:list) -> None:
         """Tnterpret the functions """
+
         if isinstance(instruction,(int,str)):
             return instruction
 
         assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
+        #get the name of the method to execute then get the actual method
         method_name = [method for method in dir(self.__class__) if method.replace("interpret_","") == instruction[0]][0]
-        my_method = getattr(self, method_name)
-        return my_method(instruction)
+        method_body = getattr(self, method_name)
+        return method_body(instruction)
         
 
     def interpret_dictionary_erstellen(self, line:list) -> None:
@@ -100,11 +105,13 @@ class LGL_Interpreter:
         for name in line[1:2]:
             assert name in self.dictionaries.keys(), f"the dictionary {name} does not exist"
 
+        #case where second dictionary gets merged into first
         if len(line) == 3:
             for key,value in self.dictionaries[line[2]].items():
                 if key not in self.dictionaries[line[1]].keys():
                     self.dictionaries[line[1]][key] = value
             del self.dictionaries[line[2]]
+        #case where both dictionary go into a new one
         else:
             self.dictionaries[line[3]] = self.dictionaries[line[1]].copy()
             for key,value in self.dictionaries[line[2]].items():
@@ -123,6 +130,7 @@ def main() -> None:
 
     parent_path = os.path.dirname(__file__)
     
+    #gsc files are located in the same directory as this file
     with open(os.path.join(parent_path,sys.argv[1]),'r') as file:
         source_lines = json.load(file)
     assert isinstance(source_lines, list), "badly formatted code"

@@ -2,22 +2,6 @@ import sys
 import json
 
 
-def do_setzen(env, args):
-    assert len(args) == 2
-    assert isinstance(args[0], str)
-    var_name = args[0]
-    value = do(env, args[1])
-    env[var_name] = value
-    return value
-
-
-def do_abrufen(env, args):
-    assert len(args) == 1
-    assert isinstance(args[0], str)
-    assert args[0] in env, f"Unknown var {args[0]}"
-    return env[args[0]]
-
-
 # Multiplizieren
 def do_multiplizieren(env, args):
     assert len(args) == 2
@@ -55,13 +39,6 @@ def do_while(env, args):
     operation = do(env, args[1])
     while cond:
         operation()
-
-
-def do_sequenz(env, args):
-    assert len(args) > 0
-    for operation in args:
-        result = do(env, operation)
-        return result
 
 
 OPERATIONS = {

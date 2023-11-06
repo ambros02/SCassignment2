@@ -1,8 +1,8 @@
 [
     "abfolge",
     ["multiplizieren", 3, 6],
-    ["dividieren", 2, 10],
+    ["dividieren", 20, 5],
     ["potenzieren", 4, 2],
     ["print", "Hello World"],
-    ["while", 2, "print('1')"]
+    ["while", 1, "print('Hello World')"]
 ]

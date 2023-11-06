@@ -14,7 +14,7 @@ def do_multiplizieren(env, args):
     assert len(args) == 2
     left = do(env, args[0])
     right = do(env, args[1])
-    return left * right
+    return print(left * right)
 
 
 # Dividieren
@@ -22,7 +22,7 @@ def do_dividieren(env, args):
     assert len(args) == 2
     left = do(env, args[0])
     right = do(env, args[1])
-    return left / right
+    return print(left / right)
 
 
 # Potenzieren
@@ -30,7 +30,7 @@ def do_potenzieren(env, args):
     assert len(args) == 2
     left = do(env, args[0])
     right = do(env, args[1])
-    return left ** right
+    return print(left ** right)
 
 
 # Print
@@ -47,7 +47,6 @@ def do_while(env, args):
     if isinstance(cond, bool):
         while cond:
             exec(operation)
-            break
     elif isinstance(cond, int):
         count = 0
         while count < cond:

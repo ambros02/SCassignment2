@@ -43,7 +43,7 @@ def do_potenzieren(env, args):
 
 
 # Print
-def do_print(env, args):
+def do_print(args):
     assert len(args) > 0
     print(args)
 
@@ -57,7 +57,7 @@ def do_while(env, args):
         operation()
 
 
-def do_abfolge(env, args):
+def do_sequenz(env, args):
     assert len(args) > 0
     for operation in args:
         result = do(env, operation)

@@ -7,17 +7,14 @@ class LGL_Interpreter:
 
 
     def __init__(self, source_code: list) -> None:
+        """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
         self.code = source_code
         self.dictionaries= {}
 
     def run(self) -> None:
-        assert len(self.code) > 0, "there is no code to read"
-        """ if self.code[0] == "seq":
-            for line in self.code[1:]:
-                self.interpret(line)
+        """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method"""
 
-        else:
-            self.interpret(self.code)"""
+        assert len(self.code) > 0, "there is no code to read"
         if not isinstance(self.code[0],list):
             self.code = [self.code]
 
@@ -26,37 +23,40 @@ class LGL_Interpreter:
 
         
 
+    def clean(self, line:list,low_limit:int = 0,high_limit:int = None) -> list:
+        """Interpret the nested functions in the lines, define low and high limit for the range of elements which should be interpreted if possible"""
+
+        for index,value in enumerate(line[low_limit:high_limit]):
+            if isinstance(value,list):
+                line[index+low_limit] = self.interpret(value)
+        return line
 
 
     def interpret(self, instruction:list) -> None:
+        """Tnterpret the functions """
         if isinstance(instruction,(int,str)):
             return instruction
 
-        assert "interpret_" + instruction[0] in dir(self.__class__), f"Unknown operation: {instruction[0]}"
+        assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
         method_name = [method for method in dir(self.__class__) if method.replace("interpret_","") == instruction[0]][0]
         my_method = getattr(self, method_name)
         return my_method(instruction)
         
 
     def interpret_dictionary_erstellen(self, line:list) -> None:
-        
-        if isinstance(line[1],list):
-            line[1] = self.interpret(line[1])
+        """This method creates dictionaries for the lgl and stores them in the self.dictionaries variable of the object"""
 
         assert len(line) == 2, "bad usage of dictionary erstellen: Try ['dictionary_erstellen','<name>']"
-
+        line = self.clean(line)
         assert isinstance(line[1],str), "the dictionary name should be a string"
         self.dictionaries[line[1]] = {}
         return None
     
     def interpret_dictionary_setzen(self, line:list) -> None:
-        
-        assert len(line) == 4, "bad usage of dictionary setzen: Try ['dictionary_setzen','<name>','<key:str/int>','<value>']"
+        """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown. If the key already exists the value is overwriten"""
 
-        for index,value in enumerate(line[1:3]):
-            if isinstance(value,list):
-                line[index+1] = self.interpret(line)
-                
+        assert len(line) == 4, "bad usage of dictionary setzen: Try ['dictionary_setzen','<name>','<key:str/int>','<value>']"
+        line = self.clean(line,high_limit=3)
 
         assert line[1] in self.dictionaries.keys(), "the dictionary of which you want to set values does not exist"
         assert isinstance(line[2],(int,str)), "the key of the dictionary needs to be a string or an int"
@@ -65,14 +65,20 @@ class LGL_Interpreter:
         return None
 
     def interpret_seq(self, instructions:list) -> None:
+        """This method allows for the lgl to use seq to specify a sequence of instructions following"""
+
         assert len(instructions) > 1, "The sequence has nothing inside it"
         for code in instructions[1:]:
             self.interpret(code)
         return None
 
     def interpret_dictionary_finden(self, line:list):
+        """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwhise the value is returned"""
 
         assert len(line) == 3, "bad usage of dictionary finden: Try ['dictionary_finden','<name>','<key:str/int>']"
+        for index, value in enumerate(line):
+            if isinstance(value,list):
+                line[index] = self.interpret(value)
         assert line[1] in self.dictionaries.keys(), "the dictionary of which you want to find values does not exist"
         assert line[2] in self.dictionaries[line[1]].keys(), f"the key {line[2]} does not exist in dictionary {line[1]}"
 
@@ -82,8 +88,13 @@ class LGL_Interpreter:
 
 
     def interpret_dictionary_verbinden(self,line:list) -> None:
+        """This method allows to merge two dictionaries. Either a new name is specified and both directories get merged there, or the second dictionary gets appended to the first.
+        If there are key conflicts the keys of the first dictionary will be used"""
 
         assert len(line) in (3,4), "bad usage of dictionary verbinden: Try ['dictionary_verbinden','<name>','<name>','<newname:optional>']"
+
+        line = self.clean(line)
+
         for name in line[1:]:
             assert(isinstance(name,str)), "names of dictionaries must be strings"
         for name in line[1:2]:
@@ -106,6 +117,7 @@ class LGL_Interpreter:
 
 
 def main() -> None:
+    """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
 
     assert len(sys.argv) == 2, "bad usage: python lgl_language.py <filename>.gsc"
 
@@ -117,7 +129,6 @@ def main() -> None:
         
     german_interpreter = LGL_Interpreter(source_lines)
     german_interpreter.run()
-    print(german_interpreter.dictionaries)
 
 if __name__ == "__main__":
     main()

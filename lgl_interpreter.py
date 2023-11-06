@@ -47,6 +47,7 @@ def do_while(env, args):
     if isinstance(cond, bool):
         while cond:
             exec(operation)
+            break
     elif isinstance(cond, int):
         count = 0
         while count < cond:

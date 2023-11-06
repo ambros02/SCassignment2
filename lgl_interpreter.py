@@ -27,7 +27,7 @@ def do_potenzieren(env, args):
 
 
 # Print
-def do_print(args):
+def do_print(env, args):
     assert len(args) > 0
     print(args)
 
@@ -35,10 +35,23 @@ def do_print(args):
 # While
 def do_while(env, args):
     assert len(args) == 2
-    cond = do(env, args[0])
-    operation = do(env, args[1])
-    while cond:
-        operation()
+    cond = args[0]
+    operation = args[1]
+    if isinstance(cond, bool):
+        while cond:
+            exec(operation)
+    elif isinstance(cond, int):
+        count = 0
+        while count < cond:
+            exec(operation)
+            count += 1
+
+
+def do_abfolge(env, args):
+    assert len(args) > 0
+    for operation in args:
+        result = do(env, operation)
+    return result
 
 
 OPERATIONS = {

@@ -2,6 +2,13 @@ import sys
 import json
 
 
+def do_abfolge(env, args):
+    assert len(args) > 0
+    for operation in args:
+        result = do(env, operation)
+    return result
+
+
 # Multiplizieren
 def do_multiplizieren(env, args):
     assert len(args) == 2
@@ -45,13 +52,6 @@ def do_while(env, args):
         while count < cond:
             exec(operation)
             count += 1
-
-
-def do_abfolge(env, args):
-    assert len(args) > 0
-    for operation in args:
-        result = do(env, operation)
-    return result
 
 
 OPERATIONS = {

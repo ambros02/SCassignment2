@@ -13,6 +13,7 @@ class LGL_Interpreter:
         self.code = source_code
         self.dictionaries = {}
 
+
     def run(self) -> None:
         """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method"""
 
@@ -36,7 +37,7 @@ class LGL_Interpreter:
 
 
     def interpret(self, instruction:list) -> None:
-        """Tnterpret the functions """
+        """Interpret the functions """
 
         if isinstance(instruction,(int,str)):
             return instruction
@@ -58,7 +59,7 @@ class LGL_Interpreter:
         return None
     
     def interpret_dictionary_setzen(self, line:list) -> None:
-        """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown. If the key already exists the value is overwriten"""
+        """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown. If the key already exists the value is overwritten"""
 
         assert len(line) == 4, "bad usage of dictionary setzen: Try ['dictionary_setzen','<name>','<key:str/int>','<value>']"
         line = self.clean(line,high_limit=3)
@@ -78,7 +79,7 @@ class LGL_Interpreter:
         return None
 
     def interpret_dictionary_finden(self, line:list):
-        """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwhise the value is returned"""
+        """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwise the value is returned"""
 
         assert len(line) == 3, "bad usage of dictionary finden: Try ['dictionary_finden','<name>','<key:str/int>']"
         for index, value in enumerate(line):
@@ -121,10 +122,38 @@ class LGL_Interpreter:
             del self.dictionaries[line[2]]
         return None
 
+    def interpret_liste_erstellen(self, line:list) -> None:
+        """This method creates lists for the lgl and stores them in the self.dictionaries variable of the object"""
+        assert len(line) == 3, "bad usage of liste ersellen: Try ['liste_erstellen', '<name>', '<size>']"
+        line = self.clean(line)
+        assert isinstance(line[1], str), "the list name should be a string"
+        self.dictionaries[line[1]] = []
+        for x in range(line[2]):
+            self.dictionaries[line[1]].append(None)
+        return None
+
+
+    def interpret_liste_setzen(self, line:list) -> None:
+        """This method sets a value to an index in a list. If the list does not exist an error is thrown."""
+        assert len(line) == 4, "bad usage of liste setzen: Try ['liste_setzen', '<name>', '<idx:int>', '<value>']"
+        line = self.clean(line, high_limit=3)
+        assert line[1] in self.dictionaries.keys(), "the list of which you want to set values does not exist"
+        assert isinstance(line[2], int), "the index of the list needs to be an int"
+        self.dictionaries[line[1]][line[2]] = line[3]
+        return None
+
+
+    def interpret_liste_finden(self, line:list) -> None:
+        """This method allows the user to find values in the list by index. If the name or index does not exist an error is thrown, otherwise the value is returned"""
+        assert len(line) == 3, "bad usage of liste finden: Try ['liste_finden', '<name>', '<idx:int>']"
+        assert line[1] in self.dictionaries.keys(), "the list of which you want to find values does not exist"
+        assert line[2] < self.dictionaries[len(line[1])], "the list index is out of range"
+        value = self.dictionaries[line[1]][line[2]]
+        return value
 
 
 def main() -> None:
-    """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
+    """get the user input gsc file create an LGL_Interpreter object and start to run the code"""
 
     assert len(sys.argv) == 2, "bad usage: python lgl_language.py <filename>.gsc"
 

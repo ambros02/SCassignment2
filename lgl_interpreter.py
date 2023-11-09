@@ -158,8 +158,6 @@ def main() -> None:
         
     german_interpreter = LGL_Interpreter(source_lines)
     german_interpreter.run()
-    print(german_interpreter.dictionaries)
-    print(german_interpreter.variables)
 
 if __name__ == "__main__":
     main()

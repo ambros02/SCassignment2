@@ -12,6 +12,7 @@ class LGL_Interpreter:
         """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
         self.code = source_code
         self.dictionaries = {}
+        self.variables = {}
 
     def run(self) -> None:
         """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method"""
@@ -36,10 +37,13 @@ class LGL_Interpreter:
 
 
     def interpret(self, instruction:list) -> None:
-        """Tnterpret the functions """
-
+        """Tnterpret the functions """    
+          
         if isinstance(instruction,(int,str)):
             return instruction
+        
+        elif isinstance(instruction[0],list):
+            instruction[0] = self.interpret(instruction[0])
 
         assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
         #get the name of the method to execute then get the actual method
@@ -81,9 +85,7 @@ class LGL_Interpreter:
         """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwhise the value is returned"""
 
         assert len(line) == 3, "bad usage of dictionary finden: Try ['dictionary_finden','<name>','<key:str/int>']"
-        for index, value in enumerate(line):
-            if isinstance(value,list):
-                line[index] = self.interpret(value)
+        line = self.clean(line)
         assert line[1] in self.dictionaries.keys(), "the dictionary of which you want to find values does not exist"
         assert line[2] in self.dictionaries[line[1]].keys(), f"the key {line[2]} does not exist in dictionary {line[1]}"
 
@@ -122,6 +124,25 @@ class LGL_Interpreter:
         return None
 
 
+    def interpret_variable_setzen(self,line:list) -> None:
+        """this method allows to store variables into the self.variables dictionary"""
+        assert len(line) == 3, "bad usage of variable setzen try: ['variable_setzen','<name:str>',<value>]"
+        line = self.clean(line)
+        assert isinstance(line[1],str), "variable name needs to be a string"
+        assert not isinstance(line[2],(list,dict)), "list and dictionaries should not be stored in a variable but in a dictionary or list"
+        self.variables[line[1]] = line[2]
+
+        return None
+
+
+    def interpret_variable_holen(self,line:list):
+        """this method allows to access stored variables"""
+        assert len(line) == 2, "bad usage of variable_holen try: ['variable_holen','<name:str>']"
+        line = self.clean(line)
+        assert isinstance(line[1],str), "varaible name needs to be a string"
+        assert line[1] in self.variables.keys()
+
+        return self.variables[line[1]]
 
 def main() -> None:
     """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
@@ -137,6 +158,8 @@ def main() -> None:
         
     german_interpreter = LGL_Interpreter(source_lines)
     german_interpreter.run()
+    print(german_interpreter.dictionaries)
+    print(german_interpreter.variables)
 
 if __name__ == "__main__":
     main()

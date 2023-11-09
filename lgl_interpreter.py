@@ -127,32 +127,34 @@ class LGL_Interpreter:
         return None
 
         def interpret_multiplizieren(self, line: list):
-        """This method allows to multiply"""
+        """This method allows to use the multiply function in the gsc file"""
         assert len(line) == 3
         left = self.interpret(line[1])
         right = self.interpret(line[2])
-        return left * right
+        return print(left * right)
 
     def interpret_dividieren(self, line: list):
-        """This method allows to divide"""
+        """This method allows to use the divide function in the gsc file"""
         assert len(line) == 3
         left = self.interpret(line[1])
         right = self.interpret(line[2])
-        return left / right
+        return print(left / right)
 
     def interpret_potenzieren(self, line: list):
-        """This method allows to calculate the power of a basis"""
+        """This method allows to calculate the power of a basis given in the gsc file"""
         assert len(line) == 3
         left = self.interpret(line[1])
         right = self.interpret(line[2])
-        return left ** right
+        return print(left ** right)
 
-    def interpret_print(self, line: list):
-        """This method allows to use the print statement"""
+    @staticmethod
+    def interpret_print(line: list):
+        """This method allows to use the print statement given in the gsc file"""
         assert len(line) > 0
-        print(line)
+        print(line[1])
 
-    def interpret_while(self, line: list):
+    @staticmethod
+    def interpret_while(line: list):
         """This method allows to use while loops, STILL WORKING ON BETTER SOLUTION"""
         assert len(line) == 3
         cond = line[1]

@@ -5,17 +5,15 @@ import json
 
 class LGL_Interpreter:
     """This class provides an interpreter for the little german language.
-        It features multiple basic functionalities as well as lists and dictionaries"""
+        It features multiple basic functionalities aswell as lists and dictionaries"""
 
     def __init__(self, source_code: list) -> None:
-        """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all
-        dictionaries"""
+        """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
         self.code = source_code
         self.dictionaries = {}
 
     def run(self) -> None:
-        """Run the program. This will start the execution of the gsc code by taking the contents of the gsc file and
-        then give it to the interpret method"""
+        """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method"""
 
         assert len(self.code) > 0, "there is no code to read"
         # case only one operation is in the file
@@ -26,16 +24,15 @@ class LGL_Interpreter:
             self.interpret(instruction)
 
     def clean(self, line: list, low_limit: int = 0, high_limit: int = None) -> list:
-        """Interpret the nested functions in the lines, define low and high limit for the range of elements which
-        should be interpreted if possible"""
+        """Interpret the nested functions in the lines, define low and high limit for the range of elements which should be interpreted if possible"""
 
         for index, value in enumerate(line[low_limit:high_limit]):
             if isinstance(value, list):
                 line[index + low_limit] = self.interpret(value)
         return line
 
-    def interpret(self, instruction: list) -> None:
-        """Interpret the functions """
+    def interpret(self, instruction: list):
+        """Tnterpret the functions """
 
         if isinstance(instruction, (int, str)):
             return instruction
@@ -48,8 +45,7 @@ class LGL_Interpreter:
         return method_body(instruction)
 
     def interpret_dictionary_erstellen(self, line: list) -> None:
-        """This method creates dictionaries for the lgl and stores them in the self.dictionaries variable
-        of the object"""
+        """This method creates dictionaries for the lgl and stores them in the self.dictionaries variable of the object"""
 
         assert len(line) == 2, "bad usage of dictionary erstellen: Try ['dictionary_erstellen','<name>']"
         line = self.clean(line)
@@ -58,8 +54,7 @@ class LGL_Interpreter:
         return None
 
     def interpret_dictionary_setzen(self, line: list) -> None:
-        """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown.
-        If the key already exists the value is overwritten"""
+        """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown. If the key already exists the value is overwriten"""
 
         assert len(
             line) == 4, "bad usage of dictionary setzen: Try ['dictionary_setzen','<name>','<key:str/int>','<value>']"
@@ -80,8 +75,7 @@ class LGL_Interpreter:
         return None
 
     def interpret_dictionary_finden(self, line: list):
-        """This method allows the user to find values in the dictionary by a specified key. If the name or key does
-        not exist an error is thrown, otherwhise the value is returned"""
+        """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwhise the value is returned"""
 
         assert len(line) == 3, "bad usage of dictionary finden: Try ['dictionary_finden','<name>','<key:str/int>']"
         for index, value in enumerate(line):
@@ -95,13 +89,11 @@ class LGL_Interpreter:
         return value
 
     def interpret_dictionary_verbinden(self, line: list) -> None:
-        """This method allows to merge two dictionaries. Either a new name is specified and both directories get
-        merged there, or the second dictionary gets appended to the first.
+        """This method allows to merge two dictionaries. Either a new name is specified and both directories get merged there, or the second dictionary gets appended to the first.
         If there are key conflicts the keys of the first dictionary will be used"""
 
         assert len(line) in (
-            3,
-            4), "bad usage of dictionary verbinden: Try ['dictionary_verbinden','<name>','<name>','<newname:optional>']"
+        3, 4), "bad usage of dictionary verbinden: Try ['dictionary_verbinden','<name>','<name>','<newname:optional>']"
 
         line = self.clean(line)
 
@@ -135,7 +127,7 @@ class LGL_Interpreter:
 
     def interpret_dividieren(self, line: list):
         """This method allows to use the divide function in the gsc file"""
-        assert len(line) == 3,  "bad usage of variable dividieren try: ['dividieren', int, int]"
+        assert len(line) == 3, "bad usage of variable dividieren try: ['dividieren', int, int]"
         left = self.interpret(line[1])
         right = self.interpret(line[2])
         return left / right
@@ -171,7 +163,7 @@ class LGL_Interpreter:
 
 
 def main() -> None:
-    """get the user input gsc file create an LGL_Interpreter object and start to run the code"""
+    """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
 
     assert len(sys.argv) == 2, "bad usage: python lgl_language.py <filename>.gsc"
 
@@ -188,4 +180,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    

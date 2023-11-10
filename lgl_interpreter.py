@@ -147,7 +147,7 @@ class LGL_Interpreter:
         """This method allows the user to find values in the list by index. If the name or index does not exist an error is thrown, otherwise the value is returned"""
         assert len(line) == 3, "bad usage of liste finden: Try ['liste_finden', '<name>', '<idx:int>']"
         assert line[1] in self.dictionaries.keys(), "the list of which you want to find values does not exist"
-        assert line[2] < self.dictionaries[len(line[1])], "the list index is out of range"
+        # assert line[2] < self.dictionaries[len(line[1])], "the list index is out of range"
         value = self.dictionaries[line[1]][line[2]]
         return value
 

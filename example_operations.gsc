@@ -1,6 +1,8 @@
-["liste_erstellen", "eine_liste", 3]
-["liste_setzen", "eine_liste", 0, "a"]
-["liste_setzen", "eine_liste", 1, "b"]
-["liste_setzen", "eine_liste", 2, "c"]
-["liste_finden", "eine_liste", 1]
-["liste_erstellen", "andere_liste", 2]
+[
+    "seq",
+    ["liste_erstellen", "eins", 3],
+    ["liste_setzen", "eins", 0, "a"],
+    ["liste_setzen", "eins", 1, "b"],
+    ["liste_setzen", "eins", 2, "c"],
+    ["liste_finden", "eins", 0]
+]

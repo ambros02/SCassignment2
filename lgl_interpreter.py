@@ -126,37 +126,38 @@ class LGL_Interpreter:
             del self.dictionaries[line[2]]
         return None
 
-        def interpret_multiplizieren(self, line: list):
+    def interpret_multiplizieren(self, line: list):
         """This method allows to use the multiply function in the gsc file"""
-        assert len(line) == 3
+        assert len(line) == 3, "bad usage of variable multiplizieren try: ['multiplizieren', int, int]"
         left = self.interpret(line[1])
         right = self.interpret(line[2])
-        return print(left * right)
+        return left * right
 
     def interpret_dividieren(self, line: list):
         """This method allows to use the divide function in the gsc file"""
-        assert len(line) == 3
+        assert len(line) == 3,  "bad usage of variable dividieren try: ['dividieren', int, int]"
         left = self.interpret(line[1])
         right = self.interpret(line[2])
-        return print(left / right)
+        return left / right
 
     def interpret_potenzieren(self, line: list):
         """This method allows to calculate the power of a basis given in the gsc file"""
-        assert len(line) == 3
+        assert len(line) == 3, "bad usage of variable potenzieren try: ['potenzieren', int, int]"
         left = self.interpret(line[1])
         right = self.interpret(line[2])
-        return print(left ** right)
+        return left ** right
 
     @staticmethod
     def interpret_print(line: list):
         """This method allows to use the print statement given in the gsc file"""
-        assert len(line) > 0
-        print(line[1])
+        assert len(line) > 0, "bad usage of variable print try: ['print', <value>]"
+        value = line[1]
+        print(value)
 
     @staticmethod
     def interpret_while(line: list):
         """This method allows to use while loops, STILL WORKING ON BETTER SOLUTION"""
-        assert len(line) == 3
+        assert len(line) == 3, "bad usage of variable while try: ['while', <condition>, <operation>]"
         cond = line[1]
         operation = line[2]
         if isinstance(cond, bool):

@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import math
-
+from copy import deepcopy
 
 class LGL_Interpreter:
 
@@ -80,14 +80,12 @@ class LGL_Interpreter:
         """Interpret the nested functions in the lines, define low and high limit for the range of elements which should be interpreted if possible"""
         if not isinstance(line,list):
             return line
-
-        a = line.copy()
-
-        for index,value in enumerate(a[low_limit:high_limit]):
+        
+        for index,value in enumerate(line[low_limit:high_limit]):
             if isinstance(value,list) and value[0] in [name.replace("interpret_","") for name in dir(self.__class__) if name.startswith("interpret_")]:
-                a[index+low_limit] = self.interpret(value)
+                line[index+low_limit] = self.interpret(value)
 
-        return a
+        return line
 
 
     def interpret(self, instruction:list) -> None:
@@ -263,7 +261,7 @@ class LGL_Interpreter:
         assert isinstance(line[1],str), "the name of the function must be a string"
         #assert line[1] in self.environment.keys(), "this function does not exist"
         try:
-            func = self.environment_get(line[1])
+            func = deepcopy(self.environment_get(line[1]))
             assert func[0] == "funktion"
         except LookupError:
             raise NotImplementedError (f'the function {line[1]} does not exist')
@@ -275,7 +273,6 @@ class LGL_Interpreter:
         assert len(self.list_transform(line[2])) == len(func[1]), f"the function: {line[1]} must be called with {len(func[1])} arguments but you specified {len(line[2])}"
         #assert len(line[2]) == len(self.environment[line[1]][1]), f"you tried to call the function {line[1]} with a wrong amount of parameters"
 
-        
 
         local_env = dict(zip(func[1],self.list_transform(line[2])))
         self.environment.append(local_env)
@@ -401,7 +398,9 @@ def main() -> None:
     german_interpreter = LGL_Interpreter(source_lines)
     german_interpreter.run()
 
-
+    for x,y in german_interpreter.environment[0].items():
+        print(f"{x} \t", end="")
+        print(y)
 
 if __name__ == "__main__":
     main()

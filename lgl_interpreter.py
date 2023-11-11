@@ -58,9 +58,22 @@ class LGL_Interpreter:
                 return None
         raise LookupError ("the specified variable was not found")
 
-    def call_clean(self,line:list,low_limit:int = 1, high_limit:int = None) -> list:
+    def list_transform(self,value) -> list:
 
-      
+        if not isinstance(value,list):
+            return [value]
+        return value
+
+    def call_clean(self,line:list,low_limit:int = 1, high_limit:int = None) -> list:
+        
+        if not isinstance(line,list):
+            return line
+        if len(line) == 0:
+            return line
+
+        if all([not isinstance(instr,list) for instr in line]):
+            return self.clean([line],low_limit,high_limit)[0]
+
         return self.clean(line,low_limit,high_limit)
 
     def clean(self, line:list,low_limit:int = 1,high_limit:int = None) -> list:
@@ -68,11 +81,13 @@ class LGL_Interpreter:
         if not isinstance(line,list):
             return line
 
-        for index,value in enumerate(line[low_limit:high_limit]):
-            if isinstance(value,list) and value[0] in [name.replace("interpret_","") for name in dir(self.__class__) if name.startswith("interpret_")]:
-                line[index+low_limit] = self.interpret(value)
+        a = line.copy()
 
-        return line
+        for index,value in enumerate(a[low_limit:high_limit]):
+            if isinstance(value,list) and value[0] in [name.replace("interpret_","") for name in dir(self.__class__) if name.startswith("interpret_")]:
+                a[index+low_limit] = self.interpret(value)
+
+        return a
 
 
     def interpret(self, instruction:list) -> None:
@@ -95,6 +110,7 @@ class LGL_Interpreter:
         line = self.call_clean(line)
         for num in line[1:]:
             assert isinstance(num,(int,float)), "bad usage of hoch, the base and the power need to be ints or floats"
+        return line[1]**line[2]
 
     def interpret_pi(self,line:list) -> float:
         assert len(line) == 1, "bad usage of pi: try ['pi']"
@@ -110,16 +126,18 @@ class LGL_Interpreter:
 
     def interpret_multiplizieren(self, line:list):
         assert len(line) == 3, "bad usage of multiplizieren try: ['multiplizieren',<value1>,<value2>]"
+        line = self.call_clean(line)
         for num in line[1:]:
             assert isinstance(num,(int,float)), "bad usage of multiplizieren, values need to be int or float"
         return line[1]*line[2]
     
     def interpret_dividieren(self, line:list):
         assert len(line) == 3, "bad usage of dividieren try: ['dividieren',<value1>,<value2>]"
+        line = self.call_clean(line)
         for num in line[1:]:
             assert isinstance(num,(int,float)), "bad usage of division, values need to be int or float"
         assert line[2] != 0, "bad usage of division: division by 0 is not allowed"
-        return line[1]*line[2]
+        return line[1]/line[2]
 
 
 
@@ -242,7 +260,6 @@ class LGL_Interpreter:
         """this method allows to call functions by their name"""
         assert len(line) == 3, "bad usage of funktion_aufrufen try: ['funktion_aufrufen',<name:str>,[<arguments>]]"
         line = self.call_clean(line,1,2)
-        line[2] = self.call_clean(line[2],0,None)
         assert isinstance(line[1],str), "the name of the function must be a string"
         #assert line[1] in self.environment.keys(), "this function does not exist"
         try:
@@ -254,11 +271,13 @@ class LGL_Interpreter:
             raise TypeError(f'the function specified: {line[1]} is not a function')
         
         assert isinstance(line[2],list), "the arguments for funktion aufrufen where not passed in a list"
-        assert len(line[2]) == len(func[1]), f"the function: {line[0]} must be called with {len(func[1])} arguments but you specified {len(line[2])}"
+        line[2] = self.call_clean(line[2],0,None)
+        assert len(self.list_transform(line[2])) == len(func[1]), f"the function: {line[1]} must be called with {len(func[1])} arguments but you specified {len(line[2])}"
         #assert len(line[2]) == len(self.environment[line[1]][1]), f"you tried to call the function {line[1]} with a wrong amount of parameters"
 
+        
 
-        local_env = dict(zip(func[1],line[2]))
+        local_env = dict(zip(func[1],self.list_transform(line[2])))
         self.environment.append(local_env)
         result = self.interpret(func[2])
         self.environment.pop(-1)
@@ -266,6 +285,7 @@ class LGL_Interpreter:
     
     def interpret_retournieren(self, line:list):
         """use this method to return in functions"""
+        assert len(line) == 2, "bad usage of retournieren try: ['retournieren',<value>]"
         line = self.call_clean(line)
         return line[1]
     
@@ -380,11 +400,7 @@ def main() -> None:
         
     german_interpreter = LGL_Interpreter(source_lines)
     german_interpreter.run()
-    for x in german_interpreter.environment:
-        print("____________________________")
-        for y,z in x.items():
-            print(y,z)
-            print("")
+
 
 
 if __name__ == "__main__":

@@ -149,6 +149,8 @@ class LGL_Interpreter:
     # = [klasse_erstellen, classname, constructor, attributes, parent]
     def interpret_klasse_erstellen(self, line: list) -> None:
         """This method allows the user to create classes"""
+        assert len(line) == 5, "bad usage of klasse erstellen: Try ['klasse_erstellen', '<classname>', '<constructor>', '[<attributes>]', '<parent>']"
+        assert isinstance(line[1], str), "the class name should be a string"
         # create constructor
         line[2] = {
             "_class": line[1]
@@ -168,10 +170,11 @@ class LGL_Interpreter:
         self.dictionaries[str(klasse)] = klasse
         return None
 
-    # ["methode_erstellen", "Form", "form_dichte", ["thing", "weight"]]
-    # [methode_erstellen, classname, methodname, parameter(s)]
     def interpret_methode_erstellen(self, line: list) -> None:
         """this method allows user to add methods to classes"""
+        assert len(line) == 4, "bad usage of methode_erstellen: Try ['methode_erstellen', '<classname>', '<methodname>', '[<parameter>]']"
+        assert isinstance(line[2], str), "the method name should be a string"
+        assert line[1] in self.dictionaries.keys(), "the class of which you want to add a method does not exist"
         # create methods
         line[2] = {}
         method = line[2]

@@ -118,7 +118,7 @@ class LGL_Interpreter:
             del self.dictionaries[line[2]]
         return None
 
-    def interpret_multiplizieren(self, line: list):
+        def interpret_multiplizieren(self, line: list):
         """This method allows to use the multiply function in the gsc file"""
         assert len(line) == 3, "bad usage of variable multiplizieren try: ['multiplizieren', int, int]"
         left = self.interpret(line[1])
@@ -146,20 +146,23 @@ class LGL_Interpreter:
         value = line[1]
         print(value)
 
-    @staticmethod
-    def interpret_while(line: list):
-        """This method allows to use while loops, STILL WORKING ON BETTER SOLUTION"""
-        assert len(line) == 3, "bad usage of variable while try: ['while', <condition>, <operation>]"
-        cond = line[1]
+    def interpret_while(self, line: list):
+        """Implement while loops in LGL with a bool condition and an operation"""
+
+        assert len(line) == 3, "Bad usage of 'while'. Try: ['while', <condition>, <operation>]"
+
+        condition = self.interpret(line[1])
         operation = line[2]
-        if isinstance(cond, bool):
-            while cond:
-                exec(operation)
-        elif isinstance(cond, int):
-            count = 0
-            while count < cond:
-                exec(operation)
-                count += 1
+
+        if isinstance(condition, bool):
+            while condition:
+                self.interpret(operation)
+        elif isinstance(condition, int):
+            while condition > 0:
+                self.interpret(operation)
+                condition -= 1
+        else:
+            raise ValueError("Invalid condition in 'while' statement. Condition must be a boolean or an integer.")
 
 
 def main() -> None:

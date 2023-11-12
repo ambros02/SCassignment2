@@ -1,4 +1,4 @@
-<h1>1 More Capabilities</h1>
+<h1>1 More Capabilites</h1>
 
 <h3>1.1 Implementation</h3>
 

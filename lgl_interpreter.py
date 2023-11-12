@@ -2,9 +2,6 @@ import os
 import sys
 import json
 import math
-import functools
-import csv
-import time
 from copy import deepcopy
 
 
@@ -91,7 +88,6 @@ class LGL_Interpreter:
 
         return line
 
-
     def interpret(self, instruction: list) -> None:
         """Tnterpret the functions """
 
@@ -107,32 +103,6 @@ class LGL_Interpreter:
         method_body = getattr(self, method_name)
         return method_body(instruction)
 
-    def get_timestamp(self):
-        return time.strftime('%Y-%m-%d %H:%M:%S.%f', time.localtime())
-
-    def trace_decorator(self, func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            if "--trace trace_file.log" in sys.argv:
-                trace_file = sys.argv[sys.argv.index("--trace") + 1]
-                with open(trace_file, 'a', newline='') as csvfile:
-                    writer = csv.writer(csvfile)
-                    unique_id = hash((func.__name__, args))
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-                    writer.writerow([unique_id, func.__name__, 'start', timestamp])
-
-                    result = func(*args, **kwargs)
-
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-                    writer.writerow([unique_id, func.__name__, 'stop', timestamp])
-
-                    return result
-            else:
-                return func(*args, **kwargs)
-
-        return wrapper
-
-    @trace_decorator
     def interpret_hoch(self, line: list):
         """this method is for calculating powers"""
         assert len(line) == 3, "bad usage of hoch try: ['hoch',<base>,<power>]"
@@ -141,12 +111,10 @@ class LGL_Interpreter:
             assert isinstance(num, (int, float)), "bad usage of hoch, the base and the power need to be ints or floats"
         return line[1] ** line[2]
 
-    @trace_decorator
     def interpret_pi(self, line: list) -> float:
         assert len(line) == 1, "bad usage of pi: try ['pi']"
         return math.pi
 
-    @trace_decorator
     def interpret_addieren(self, line: list):
         assert len(line) >= 3, "bad usage of interpret addieren, need at least 2 arguments"
         line = self.call_clean(line)
@@ -155,7 +123,6 @@ class LGL_Interpreter:
             result += value
         return result
 
-    @trace_decorator
     def interpret_multiplizieren(self, line: list):
         assert len(line) == 3, "bad usage of multiplizieren try: ['multiplizieren',<value1>,<value2>]"
         line = self.call_clean(line)
@@ -163,7 +130,6 @@ class LGL_Interpreter:
             assert isinstance(num, (int, float)), "bad usage of multiplizieren, values need to be int or float"
         return line[1] * line[2]
 
-    @trace_decorator
     def interpret_dividieren(self, line: list):
         assert len(line) == 3, "bad usage of dividieren try: ['dividieren',<value1>,<value2>]"
         line = self.call_clean(line)
@@ -172,7 +138,6 @@ class LGL_Interpreter:
         assert line[2] != 0, "bad usage of division: division by 0 is not allowed"
         return line[1] / line[2]
 
-    @trace_decorator
     def interpret_dictionary_erstellen(self, line: list) -> dict:
         """This method creates a dictionary and returns it"""
 
@@ -188,7 +153,6 @@ class LGL_Interpreter:
             self.interpret(instr)
         return None
 
-    @trace_decorator
     def interpret_dictionary_setzen(self, line: list) -> None:
         """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown. If the key already exists the value is overwriten"""
 
@@ -205,7 +169,6 @@ class LGL_Interpreter:
 
         return None
 
-    @trace_decorator
     def interpret_dictionary_finden(self, line: list):
         """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwhise the value is returned"""
 
@@ -224,7 +187,6 @@ class LGL_Interpreter:
             raise Exception(f'the dictionary {line[1]} or the key {line[2]} does not exist')
         # return value
 
-    @trace_decorator
     def interpret_dictionary_verbinden(self, line: list) -> dict:
         """This method allows to merge two dictionaries. Either a new name is specified and both directories get merged there, or the second dictionary gets appended to the first.
         If there are key conflicts the keys of the first dictionary will be used"""
@@ -250,7 +212,6 @@ class LGL_Interpreter:
                 dictionaries[0][key] = value
         return dictionaries[0]
 
-    @trace_decorator
     def interpret_liste_erstellen(self, line: list) -> None:
         """This method creates lists for the lgl and stores them in the self.dictionaries variable of the object"""
         assert len(line) == 3, "bad usage of liste ersellen: Try ['liste_erstellen', '<name>', '<size>']"
@@ -261,7 +222,6 @@ class LGL_Interpreter:
             line[1].append(None)
         return line[1]
 
-    @trace_decorator
     def interpret_liste_setzen(self, line: list) -> None:
         """This method sets a value to an index in a list. If the list does not exist an error is thrown."""
         assert len(line) == 4, "bad usage of liste setzen: Try ['liste_setzen', '<name>', '<idx:int>', '<value>']"
@@ -274,7 +234,6 @@ class LGL_Interpreter:
         new_list[line[2]] = line[3]
         return None
 
-    @trace_decorator
     def interpret_liste_finden(self, line: list) -> None:
         """This method allows the user to find values in the list by index. If the name or index does not exist an error is thrown, otherwise the value is returned"""
         assert len(line) == 3, "bad usage of liste finden: Try ['liste_finden', '<name>', '<idx:int>']"
@@ -353,7 +312,6 @@ class LGL_Interpreter:
         line = self.call_clean(line)
         return line[1]
 
-    @trace_decorator
     def interpret_klasse_erstellen(self, line: list) -> None:
         """method to create a new class"""
         assert len(line) in (3,
@@ -390,7 +348,6 @@ class LGL_Interpreter:
         self.environment_set("class_" + line[1], assemble)
         return None
 
-    @trace_decorator
     def interpret_objekt_instanzieren(self, line: list) -> dict:
         """instantiate objects of a class by using the standard neu->dict method"""
         assert len(line) == 3, "bad usage of objekt_instanzieren try: ['objekt_instanzieren',<class>,[<arg>,<arg>]]"

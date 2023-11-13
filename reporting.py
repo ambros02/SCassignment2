@@ -41,11 +41,11 @@ class Reporter():
 
         with open(self._file_name,"r") as log_file:
             for log_line in log_file.readlines():
-                log_info = log_line.split(",")
+                log_info = log_line.strip().split(",")
 
 
-                assert len(log_info) == 5, f"line has {len(log_info)} entries instead of 5"
-                id, name, event, time = log_info[:-1]
+                assert len(log_info) == 4, f"line has {len(log_info)} entries instead of 5"
+                id, name, event, time = log_info
 
                 if event == "start":
                     if id not in total_call_time.keys():

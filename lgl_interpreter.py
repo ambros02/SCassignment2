@@ -5,39 +5,45 @@ import math
 from copy import deepcopy
 from datetime import datetime
 import csv
+import logging
 
+# Configure logging
+logging.basicConfig(filename='trace_file.log', level=logging.INFO, format='%(message)s')
 
 class LGL_Interpreter:
-    """This class provides an interpreter for the little german language.
-        It features multiple basic functionalities aswell as lists and dictionaries"""
-
-    def __init__(self, source_code: list) -> None:
-        """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
+    def __init__(self, source_code: list, trace_file: str) -> None:
         self.code = source_code
         self.environment = [{}]
-        self.trace_file = None
-
-    def self_trace_file(self, trace_filename):
-        self.trace_file = trace_filename
-
-    def log_trace(self, function_name, event):
-        if self.trace_file:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            unique_id = id(function_name)
-            with open(self.trace_file, "a") as log_file:
-                writer = csv.writer(log_file)
-                writer.writerow([unique_id, function_name, event, timestamp])
+        self.trace_file = trace_file
 
     def run(self) -> None:
-        """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method line by line"""
-
-        assert len(self.code) > 0, "there is no code to read"
-        # case only one operation is in the file
         if not isinstance(self.code[0], list):
             self.code = [self.code]
 
         for instruction in self.code:
             self.interpret(instruction)
+
+    def interpret(self, instruction: list):
+        function_name = instruction[0]
+        self.log_trace(function_name, 'start')
+
+        if isinstance(instruction[0], list):
+            instruction = self.call_clean(instruction, 0, 1)
+        assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
+
+        method_name = [method for method in dir(self.__class__) if method.replace("interpret_", "") == instruction[0]][0]
+        method_body = getattr(self, method_name)
+        result = method_body(instruction)
+
+        self.log_trace(function_name, 'stop')
+        return result
+
+    def log_trace(self, function_name, event):
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        unique_id = id(function_name)
+        logging.info(f"{unique_id},{function_name},{event},{timestamp}")
+
+
 
     def environment_set(self, name: str, value) -> None:
         """use to set environment variables"""
@@ -101,23 +107,7 @@ class LGL_Interpreter:
 
         return line
 
-    def interpret(self, instruction: list):
-        """Tnterpret the functions """
 
-        if isinstance(instruction, (int, str, type(None))):
-            return instruction
-
-        function_name = instruction[0]
-        self.log_trace(function_name, "start")
-
-        if isinstance(instruction[0], list):
-            instruction = self.call_clean(instruction, 0, 1)
-        assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
-        # get the name of the method to execute then get the actual method
-        method_name = [method for method in dir(self.__class__) if method.replace("interpret_", "") == instruction[0]][
-            0]
-        method_body = getattr(self, method_name)
-        return method_body(instruction)
 
     def interpret_hoch(self, line: list):
         """this method is for calculating powers"""
@@ -447,36 +437,28 @@ class LGL_Interpreter:
 
 
 def main() -> None:
-    """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
-
-    assert len(sys.argv) >= 2, "bad usage: python lgl_language.py <filename>.gsc"
-
-    trace_file = None
-    if "--trace" in sys.argv:
-        trace_index = sys.argv.index("--trace")
-        if trace_index + 1 < len(sys.argv):
-            trace_filename = sys.argv[trace_index + 1]
-            trace_file = open(trace_filename, "w")
-            trace_file.write("id, function_name, event, timestamp \n")
-            sys.argv.pop(trace_index + 1)
-            sys.argv.remove("--trace")
+    assert len(sys.argv) >= 3, "bad usage: python lgl_language.py <filename>.gsc --trace <trace_file.log>"
 
     parent_path = os.path.dirname(__file__)
 
-    # gsc files are located in the same directory as this file
+    trace_file = None
+
+    if '--trace' in sys.argv:
+        trace_index = sys.argv.index('--trace')
+        if trace_index + 1 < len(sys.argv):
+            trace_file = sys.argv[trace_index + 1]
+
     with open(os.path.join(parent_path, sys.argv[1]), 'r') as file:
         source_lines = json.load(file)
     assert isinstance(source_lines, list), "badly formatted code"
 
-    german_interpreter = LGL_Interpreter(source_lines)
+    german_interpreter = LGL_Interpreter(source_lines, trace_file)
+
     german_interpreter.run()
 
     for x, y in german_interpreter.environment[0].items():
         print(f"{x} \t", end="")
         print(y)
-    if trace_file:
-        trace_file.close()
-
 
 if __name__ == "__main__":
     main()

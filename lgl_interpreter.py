@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import math
+import random
+from datetime import datetime
 from copy import deepcopy
 
 
@@ -10,10 +12,34 @@ class LGL_Interpreter:
     """This class provides an interpreter for the little german language.
         It features multiple basic functionalities aswell as lists and dictionaries"""
 
-    def __init__(self, source_code: list) -> None:
+    def __init__(self, source_code: list, trace_file: str = None) -> None:
         """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
         self.code = source_code
         self.environment = [{}]
+
+        self.trace_file = trace_file
+        self.trace_data = []
+        self.current_trace_id = None
+
+    def log_trace(self, function_name: str, event: str) -> None:
+        if self.trace_file:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            if not self.current_trace_id:
+                self.current_trace_id = str(random.randint(100000, 999999))
+            entry = f"{self.current_trace_id},{function_name},{event},{timestamp}"
+            self.trace_data.append(entry)
+            if event == "stop":
+                self.current_trace_id = None
+
+    def trace_decorator(func):
+        def wrapper(self, *args, **kwargs):
+            function_name = func.__name__
+            self.log_trace(function_name, "start")
+            result = func(self, *args, **kwargs)
+            self.log_trace(function_name, "stop")
+            return result
+
+        return wrapper
 
     def run(self) -> None:
         """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method line by line"""
@@ -103,6 +129,7 @@ class LGL_Interpreter:
         method_body = getattr(self, method_name)
         return method_body(instruction)
 
+    @trace_decorator
     def interpret_hoch(self, line: list):
         """this method is for calculating powers"""
         assert len(line) == 3, "bad usage of hoch try: ['hoch',<base>,<power>]"
@@ -111,10 +138,12 @@ class LGL_Interpreter:
             assert isinstance(num, (int, float)), "bad usage of hoch, the base and the power need to be ints or floats"
         return line[1] ** line[2]
 
+    @trace_decorator
     def interpret_pi(self, line: list) -> float:
         assert len(line) == 1, "bad usage of pi: try ['pi']"
         return math.pi
 
+    @trace_decorator
     def interpret_addieren(self, line: list):
         assert len(line) >= 3, "bad usage of interpret addieren, need at least 2 arguments"
         line = self.call_clean(line)
@@ -123,6 +152,7 @@ class LGL_Interpreter:
             result += value
         return result
 
+    @trace_decorator
     def interpret_multiplizieren(self, line: list):
         assert len(line) == 3, "bad usage of multiplizieren try: ['multiplizieren',<value1>,<value2>]"
         line = self.call_clean(line)
@@ -130,6 +160,7 @@ class LGL_Interpreter:
             assert isinstance(num, (int, float)), "bad usage of multiplizieren, values need to be int or float"
         return line[1] * line[2]
 
+    @trace_decorator
     def interpret_dividieren(self, line: list):
         assert len(line) == 3, "bad usage of dividieren try: ['dividieren',<value1>,<value2>]"
         line = self.call_clean(line)
@@ -138,6 +169,7 @@ class LGL_Interpreter:
         assert line[2] != 0, "bad usage of division: division by 0 is not allowed"
         return line[1] / line[2]
 
+    @trace_decorator
     def interpret_dictionary_erstellen(self, line: list) -> dict:
         """This method creates a dictionary and returns it"""
 
@@ -153,6 +185,7 @@ class LGL_Interpreter:
             self.interpret(instr)
         return None
 
+    @trace_decorator
     def interpret_dictionary_setzen(self, line: list) -> None:
         """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown. If the key already exists the value is overwriten"""
 
@@ -169,6 +202,7 @@ class LGL_Interpreter:
 
         return None
 
+    @trace_decorator
     def interpret_dictionary_finden(self, line: list):
         """This method allows the user to find values in the dictionary by a specified key. If the name or key does not exist an error is thrown, otherwhise the value is returned"""
 
@@ -187,6 +221,7 @@ class LGL_Interpreter:
             raise Exception(f'the dictionary {line[1]} or the key {line[2]} does not exist')
         # return value
 
+    @trace_decorator
     def interpret_dictionary_verbinden(self, line: list) -> dict:
         """This method allows to merge two dictionaries. Either a new name is specified and both directories get merged there, or the second dictionary gets appended to the first.
         If there are key conflicts the keys of the first dictionary will be used"""
@@ -212,6 +247,7 @@ class LGL_Interpreter:
                 dictionaries[0][key] = value
         return dictionaries[0]
 
+    @trace_decorator
     def interpret_liste_erstellen(self, line: list) -> None:
         """This method creates lists for the lgl and stores them in the self.dictionaries variable of the object"""
         assert len(line) == 3, "bad usage of liste ersellen: Try ['liste_erstellen', '<name>', '<size>']"
@@ -222,6 +258,7 @@ class LGL_Interpreter:
             line[1].append(None)
         return line[1]
 
+    @trace_decorator
     def interpret_liste_setzen(self, line: list) -> None:
         """This method sets a value to an index in a list. If the list does not exist an error is thrown."""
         assert len(line) == 4, "bad usage of liste setzen: Try ['liste_setzen', '<name>', '<idx:int>', '<value>']"
@@ -234,6 +271,7 @@ class LGL_Interpreter:
         new_list[line[2]] = line[3]
         return None
 
+    @trace_decorator
     def interpret_liste_finden(self, line: list) -> None:
         """This method allows the user to find values in the list by index. If the name or index does not exist an error is thrown, otherwise the value is returned"""
         assert len(line) == 3, "bad usage of liste finden: Try ['liste_finden', '<name>', '<idx:int>']"
@@ -312,6 +350,7 @@ class LGL_Interpreter:
         line = self.call_clean(line)
         return line[1]
 
+    @trace_decorator
     def interpret_klasse_erstellen(self, line: list) -> None:
         """method to create a new class"""
         assert len(line) in (3,
@@ -408,17 +447,29 @@ class LGL_Interpreter:
 def main() -> None:
     """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
 
-    assert len(sys.argv) == 2, "bad usage: python lgl_language.py <filename>.gsc"
+    assert len(sys.argv) >= 2, "bad usage: python lgl_language.py <filename>.gsc [--trace <trace_file.log>]"
 
     parent_path = os.path.dirname(__file__)
+
+    trace_file = None
+    if "--trace" in sys.argv:
+        trace_index = sys.argv.index("--trace")
+        if len(sys.argv) > trace_index + 1:
+            trace_file = sys.argv[trace_index + 1]
 
     # gsc files are located in the same directory as this file
     with open(os.path.join(parent_path, sys.argv[1]), 'r') as file:
         source_lines = json.load(file)
     assert isinstance(source_lines, list), "badly formatted code"
 
-    german_interpreter = LGL_Interpreter(source_lines)
+    german_interpreter = LGL_Interpreter(source_lines, trace_file)
     german_interpreter.run()
+
+    if trace_file:
+        with open(trace_file, 'w') as trace_output:
+            trace_output.write("id,function_name,event,timestamp\n")
+            for entry in german_interpreter.trace_data:
+                trace_output.write(entry + "\n")
 
     for x, y in german_interpreter.environment[0].items():
         print(f"{x} \t", end="")

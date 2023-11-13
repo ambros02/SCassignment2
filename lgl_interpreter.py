@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import json
@@ -87,18 +88,13 @@ class LGL_Interpreter:
                 return None
         raise LookupError ("the specified variable was not found")
 
-    def list_transform(self,value) -> list:
-
-        if not isinstance(value,list):
-            return [value]
-        return value
 
 
 
     def interpret(self, instruction:list) -> None:
         """Tnterpret the functions """    
           
-        if isinstance(instruction,(int,str,type(None))):
+        if isinstance(instruction,(int,str,bool,type(None))):
             return instruction
         
         if isinstance(instruction[0],list): 
@@ -108,39 +104,149 @@ class LGL_Interpreter:
         method_name = [method for method in dir(self.__class__) if method.replace("interpret_","") == instruction[0]][0]
         method_body = getattr(self, method_name)
         return method_body(instruction)
-        
-    def interpret_hoch(self, line:list):
+
+
+
+    #################################WASSIM################################
+
+    def interpret_hoch(self, line: list):
         """this method is for calculating powers"""
         assert len(line) == 3, "bad usage of hoch try: ['hoch',<base>,<power>]"
         base = self.interpret(line[1])
         power = self.interpret(line[2])
+        assert isinstance(base,(int,float)), "the base needs to be an int"
+        assert isinstance(power,(int,float)), "the power needs to be an int"
+
         return base ** power
 
-    def interpret_pi(self,line:list) -> float:
+
+    def interpret_pi(self, line: list) -> float:
         assert len(line) == 1, "bad usage of pi: try ['pi']"
         return math.pi
-    
-    def interpret_addieren(self, line:list):
-        assert len(line) >= 3, "bad usage of interpret addieren, need at least 2 arguments"
+
+    def interpret_addieren(self, line: list):
+        assert len(line) >= 3, "bad usage of addieren, need at least 2 arguments"
+
         result = 0
-        for number in line[1:]:
-            result += self.interpret(number)
+        for expression in line[1:]:
+            number = self.interpret(expression)
+            assert isinstance(number,(int,float)), "addieren needs arguments to be int or float"
+            result += number
+
         return result
 
+
     def interpret_multiplizieren(self, line:list):
-        assert len(line) == 3, "bad usage of multiplizieren try: ['multiplizieren',<value1>,<value2>]"
-        
-        left = self.interpret(line[1])
-        right = self.interpret(line[2])
-        return left * right
-    
-    def interpret_dividieren(self, line:list):
+        assert len(line) >= 3, "bad usage of multiplizieren, need at least 2 arguments"
+
+        result = 1
+        for expression in line[1:]:
+            number = self.interpret(expression)
+            assert isinstance(number,(int,float)), "addieren needs arguments to be int or float"
+            result *= number
+
+        return result
+
+
+    def interpret_dividieren(self, line: list):
         assert len(line) == 3, "bad usage of dividieren try: ['dividieren',<value1>,<value2>]"
         dividend = self.interpret(line[1])
         divisor = self.interpret(line[2])
+        assert isinstance(dividend,(int,float)), "bad usage of dividieren: dividend must be int or float"
+        assert isinstance(divisor,(int,float)), "bad usage of dividieren: divisor must be int or float"
+        assert divisor != 0, "bad usage of dividieren: divisor can't be 0"
         return dividend/divisor
 
 
+    def interpret_print(self, line: list):
+        """This method allows to use the print statement given in the gsc file"""
+        assert len(line) > 0, "bad usage of print try: ['print', <value>]"
+
+        #interpret or print?
+        value = self.interpret(line[1])
+        print(value)
+
+    def interpret_while(self, line: list):
+        """Implement while loops in LGL with a bool condition and an operation"""
+
+        assert len(line) == 3, "Bad usage of 'while'. Try: ['while', <condition>, <operation>]"
+
+        condition = self.interpret(line[1])
+        assert isinstance(condition,bool), "Bad usage of while, condition must be a bool"
+        operation = line[2]
+
+        while condition:
+            self.interpret(operation)
+            condition = self.interpret(line[1])
+            assert isinstance(condition,bool), "Bad usage of while, condition must be a bool"
+
+        
+
+
+     #################################WASSIM################################
+
+
+    ##################################YANNIK################################
+
+    def interpret_liste_erstellen(self, line: list) -> None:
+        """This method creates lists for the lgl and returns them"""
+        assert len(line) == 2, "bad usage of liste ersellen: Try ['liste_erstellen', '<size>']"
+        size = self.interpret(line[1])
+        assert isinstance(size, int), "the size of the list needs to be a int"
+        new_list = []
+        for x in range(size):
+            new_list.append(None)
+        return new_list
+
+    def interpret_liste_setzen(self, line: list) -> None:
+        """This method sets a value to an index in a list. If the list does not exist an error is thrown."""
+        assert len(line) == 4, "bad usage of liste setzen: Try ['liste_setzen', '<name>', '<idx:int>', '<value>']"
+        name = self.interpret(line[1])
+        assert isinstance(name,str), "bad usage of liste_setzen: the name of the list needs to be a string"
+        index = self.interpret(line[2])
+        assert isinstance(index,int), "bad usage of liste_setzen: index must be an int"
+        value = self.interpret(line[3])
+        try:
+            new_list = self.environment_get(name)
+        except Exception:
+            raise Exception(f"the list {name} does not exist")
+        assert index < len(new_list), "bad usage of liste_setzen: the index is out of range"
+        new_list[index] = value 
+        return None
+
+    def interpret_liste_finden(self, line: list) -> None:
+        """This method allows the user to find values in the list by index. If the name or index does not exist an error is thrown, otherwise the value is returned"""
+        assert len(line) == 3, "bad usage of liste finden: Try ['liste_finden', '<name>', '<idx:int>']"
+        name = self.interpret(line[1])
+        assert isinstance(name,str), "bad usage of liste finden: name needs to be a string"
+        index = self.interpret(line[2])
+        assert isinstance(index, int), "bad usage of liste finden: the index of the list needs to be an integer"
+        try:
+            new_list = self.environment_get(name)
+        except Exception:
+            raise Exception(f"the list {name} does not exist")
+        assert index < len(new_list), "bad usage of liste finden: the index is out of range"
+        return new_list[index]
+
+
+
+    ##################################YANNIK################################
+
+    def interpret_gleich(self,line:list) -> bool:
+        """this method allows to compare two expressions for equality of the value"""
+        assert len(line) == 3, "bad usage of gleich try: ['gleich',<value>,<value>]"
+        left = self.interpret(line[1])
+        right = self.interpret(line[2])
+
+        return left == right
+
+    def interpret_ungleich(self,line:list) -> bool:
+        """this method allows to compare two expressions for inequality of the value"""
+        assert len(line) == 3, "bad usage of gleich try: ['gleich',<value>,<value>]"
+        left = self.interpret(line[1])
+        right = self.interpret(line[2])
+
+        return left != right
 
     def interpret_dictionary_erstellen(self, line:list) -> dict:
         """This method creates a dictionary and returns it"""
@@ -425,7 +531,6 @@ def main() -> None:
     else:
         german_interpreter = LGL_Interpreter(source_lines)
         german_interpreter.run()
-
 
 if __name__ == "__main__":
     main()

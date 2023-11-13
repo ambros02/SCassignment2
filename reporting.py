@@ -2,6 +2,7 @@ import datetime
 import sys
 
 
+
 class Reporter():
 
     def __init__(self,file_name) -> None:
@@ -9,13 +10,15 @@ class Reporter():
         self._event_start_time = {}
         self._file_name = file_name
 
-    def report(self):
+    def report(self) -> None:
         
         self._calculate()
         self._present()
 
-    def _present(self) -> None:
+        return None
 
+    def _present(self) -> None:
+        """give the output formatted"""
         offset = 29
 
         print(f"| {'Function Name'.ljust(offset,' ')}| {'Num. of calls'.ljust(offset,' ')}| {'Total Time (ms)'.ljust(offset,' ')}| {'Average Time (ms)'.ljust(offset,' ')}|")
@@ -26,14 +29,15 @@ class Reporter():
             calls = str(result[1]).ljust(offset," ")
             total = str(result[2]).ljust(offset," ")
             average = str(result[3]).ljust(offset," ")
-            print(f"| {func}| {calls}| {total}| {average}")
+            print(f"| {func}| {calls}| {total}| {average}|")
         
 
         return None
 
     def _calculate(self) -> None:
-
+        """calculate numebr of calls total runtime and average runtime"""
         total_call_time = {}
+        #keys are id of functions, values are list with [name,no_calls,totaltime]
 
         with open(self._file_name,"r") as log_file:
             for log_line in log_file.readlines():
@@ -65,7 +69,7 @@ class Reporter():
                     
 
     def _set_start(self, id:str, time:datetime) -> None:
-
+        """set starting times for a given id"""
         id = int(id)
         if id in self._event_start_time.keys():
             self._event_start_time[id].append(time)

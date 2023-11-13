@@ -14,7 +14,7 @@ class LGL_Interpreter:
         self.dictionaries = {}
 
     def run(self) -> None:
-        """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and
+        """Run the program. This will start the execution of the gsc code by taking the contents of the gsc file and
         then give it to the interpret method"""
 
         assert len(self.code) > 0, "there is no code to read"
@@ -35,7 +35,7 @@ class LGL_Interpreter:
         return line
 
     def interpret(self, instruction: list):
-        """Tnterpret the functions """
+        """Interpret the functions """
 
         if isinstance(instruction, (int, str)):
             return instruction
@@ -59,7 +59,7 @@ class LGL_Interpreter:
 
     def interpret_dictionary_setzen(self, line: list) -> None:
         """This method sets a value to a key in a dictionary. If the dictionary does not exist an error is thrown.
-        If the key already exists the value is overwriten"""
+        If the key already exists the value is overwritten"""
 
         assert len(
             line) == 4, "bad usage of dictionary setzen: Try ['dictionary_setzen','<name>','<key:str/int>','<value>']"
@@ -81,7 +81,7 @@ class LGL_Interpreter:
 
     def interpret_dictionary_finden(self, line: list):
         """This method allows the user to find values in the dictionary by a specified key. If the name or key does
-        not exist an error is thrown, otherwhise the value is returned"""
+        not exist an error is thrown, otherwise the value is returned"""
 
         assert len(line) == 3, "bad usage of dictionary finden: Try ['dictionary_finden','<name>','<key:str/int>']"
         for index, value in enumerate(line):

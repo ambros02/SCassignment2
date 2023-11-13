@@ -34,8 +34,8 @@
 
     ["variable_setzen","shape_density",["funktion_erstellen",["density","instance"],["seq",
         ["variable_setzen","gewicht",["variable_holen","density"]],
-        ["variable_setzen","area",["objekt_methode",["dictionary_finden",["variable_holen","instance"],"name"],"area",["variable_holen","instance"]]],
-        ["retournieren",["dividieren",["variable_holen","gewicht"],["variable_holen","area"]]]
+        ["variable_setzen","flaeche",["objekt_methode",["dictionary_finden",["variable_holen","instance"],"name"],"area",[["variable_holen","instance"]]]],
+        ["retournieren",["dividieren",["variable_holen","gewicht"],["variable_holen","flaeche"]]]
         ]]],
     
 
@@ -45,8 +45,13 @@
 
     ["variable_setzen","sq",["objekt_instanzieren","Square",["sq",3]]],
     ["variable_setzen","ci",["objekt_instanzieren","Circle",["ci",2]]],
+
+    ["variable_setzen","ho",["objekt_methode","sq","area",["sq"]]],
+    ["variable_setzen","ha",["objekt_methode","ci","area",["ci"]]],
+    ["variable_setzen","hu",["objekt_methode","ci","dichte",[5,"ci"]]],
+    ["variable_setzen","hi",["objekt_methode","sq","dichte",[5,"sq"]]],
     
-    ["variable_setzen","o",["objekt_methode","sq","area",["sq"]]]
+    ["variable_setzen","o",["addieren",["objekt_methode","sq","dichte",[5,"sq"]],["objekt_methode","ci","dichte",[5,"ci"]]]]
     
 
 ]

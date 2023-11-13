@@ -3,16 +3,22 @@ import sys
 import json
 import math
 from copy import deepcopy
+from datetime import datetime
+from time import time
+
+
 
 class LGL_Interpreter:
 
     """This class provides an interpreter for the little german language.
         It features multiple basic functionalities aswell as lists and dictionaries"""
 
-    def __init__(self, source_code: list) -> None:
+    def __init__(self, source_code: list, logging:bool=False, filename:str=None) -> None:
         """Initialize a new LGL_Interpreter with a gsc file contents. Set up a dictionary to keep track of all dictionaries"""
         self.code = source_code
         self.environment = [{}]
+        self.__file_name = filename
+        self.__logging = logging
 
     def run(self) -> None:
         """Run the programm. This will start the execution of the gsc code by taking the contents of the gsc file and then give it to the interpret method line by line"""
@@ -24,6 +30,29 @@ class LGL_Interpreter:
 
         for instruction in self.code:
             self.interpret(instruction)
+
+
+    def _decorator(func_call):
+        def logger(self,instructions):
+            if self.__logging:
+                log_data = []
+                function_name = self.interpret(instructions[1]) #give back calculated so nested is not called twice
+                func_id = str(id(self.environment_get(function_name)))
+                log_data.append([func_id,function_name,"start",str(datetime.fromtimestamp(time())),"\n"])
+                a = func_call(self,instructions)
+                log_data.append([func_id,function_name,"end",str(datetime.fromtimestamp(time())),"\n"])
+
+                with open(self.__file_name,"a") as log_file:
+                    for log_line in log_data:
+                        log_file.write(",".join(log_line))
+
+                return a
+            else:
+                b = func_call(self,instructions)
+                return b
+        return logger
+
+
 
     def environment_set(self, name:str, value) -> None:
         """use to set environment variables"""
@@ -235,7 +264,7 @@ class LGL_Interpreter:
 
         return ["funktion",line[1],line[2]]
     
-
+    @_decorator 
     def interpret_funktion_aufrufen(self, line:list):
         """this method allows to call functions by their name"""
         assert len(line) == 3, "bad usage of funktion_aufrufen try: ['funktion_aufrufen',<name:str>,[<arguments>]]"
@@ -318,7 +347,7 @@ class LGL_Interpreter:
         assemble = {"class":"class_" + class_name}
         try:
             function_name = self.find_method(assemble["class"],"neu")
-            object_variables = self.interpret_funktion_aufrufen(["funktion_aufrufen",function_name,arguments])
+            object_variables = self.interpret(["funktion_aufrufen",function_name,arguments])
             assert isinstance(object_variables,dict), f"the class {class_name} did not implement neu to return a dictionary"
             assemble |= object_variables
         except Exception:
@@ -356,7 +385,7 @@ class LGL_Interpreter:
             arguments.append(self.interpret(arg))
 
         func_name = self.find_method(self.environment_get(object_name)["class"],method_name)
-        return self.interpret_funktion_aufrufen(["funktion_aufrufen",func_name,arguments])
+        return self.interpret(["funktion_aufrufen",func_name,arguments])
     
     def interpret_klasse_methode(self, line:list):
         """lets classes use their methods"""
@@ -365,10 +394,14 @@ class LGL_Interpreter:
 
 
 
+        
+
+
+
 def main() -> None:
     """get the user input gsc file create a LGL_Interpreter object and start to run the code"""
 
-    assert len(sys.argv) == 2, "bad usage: python lgl_language.py <filename>.gsc"
+    assert len(sys.argv) in (2,4), "bad usage: python lgl_language.py <filename>.gsc"
 
     parent_path = os.path.dirname(__file__)
     
@@ -376,10 +409,22 @@ def main() -> None:
     with open(os.path.join(parent_path,sys.argv[1]),'r') as file:
         source_lines = json.load(file)
     assert isinstance(source_lines, list), "badly formatted code"
-        
-    german_interpreter = LGL_Interpreter(source_lines)
-    german_interpreter.run()
 
+    if len(sys.argv) == 4:
+        assert sys.argv[2] == "--trace", f"option {sys.argv[2]} is not implemented"
+        assert isinstance(sys.argv[3],str), "option --trace needs a filename"
+        #clean file and check if it works
+        try:
+            with open(sys.argv[3],"w"):
+                pass
+        except Exception:
+            raise Exception ('the filename you specified is not valid')
+        german_interpreter = LGL_Interpreter(source_lines,True,sys.argv[3])
+        german_interpreter.run()
+
+    else:
+        german_interpreter = LGL_Interpreter(source_lines)
+        german_interpreter.run()
 
 
 if __name__ == "__main__":

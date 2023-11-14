@@ -53,16 +53,15 @@ class LGL_Interpreter:
     
 
 
-
     """[environment methods]  to interract with the environment"""
 
-    def environment_set(self, name:str, value) -> None:
+    def _environment_set(self, name:str, value) -> None:
         """set variable in the current environment"""
         assert isinstance(name,str), "name of variable needs to be a string"
         self._environment[-1][name] = value
         return None
 
-    def environment_get(self, name:str):
+    def _environment_get(self, name:str):
         """get the instance in the top most environment (top stack of function calls)"""
         assert isinstance(name,str), "name of variable needs to be a string"
         for env in reversed(self._environment):
@@ -70,7 +69,7 @@ class LGL_Interpreter:
                 return env[name]
         raise LookupError ("the variable specified is non-existent")
     
-    def environment_inspect(self, name:str) -> bool:
+    def _environment_inspect(self, name:str) -> bool:
         """use to check for existence True if it exists False otherwise"""
         assert isinstance(name,str), "name of variable needs to be a string"
         for env in reversed(self._environment):
@@ -79,7 +78,7 @@ class LGL_Interpreter:
         return False
         
     
-    def environment_delete(self, name:str) -> None:
+    def _environment_delete(self, name:str) -> None:
         """delete the first instance from the top most environment"""
         assert isinstance(name,str), "name of variable needs to be a string"
 
@@ -100,7 +99,7 @@ class LGL_Interpreter:
             """log functions called with id, name, even and time"""
             if self.logging:
                 function_name = self.interpret(instructions[1])
-                func_id = str(id(self.environment_get(function_name)))
+                func_id = str(id(self._environment_get(function_name)))
 
                 logging.info(",".join([func_id,function_name,"start",str(datetime.fromtimestamp(time()))]))
                 a = func_call(self,[instructions[0]] + [function_name] + [instructions[2]]) #call with calculated to avoid nesting twice
@@ -218,7 +217,7 @@ class LGL_Interpreter:
         assert isinstance(index,int), "bad usage of liste_setzen: index must be an int"
         value = self.interpret(line[3])
         try:
-            new_list = self.environment_get(name)
+            new_list = self._environment_get(name)
         except Exception:
             raise Exception(f"the list {name} does not exist")
         assert index < len(new_list), "bad usage of liste_setzen: the index is out of range"
@@ -233,7 +232,7 @@ class LGL_Interpreter:
         index = self.interpret(line[2])
         assert isinstance(index, int), "bad usage of liste finden: the index of the list needs to be an integer"
         try:
-            new_list = self.environment_get(name)
+            new_list = self._environment_get(name)
         except Exception:
             raise Exception(f"the list {name} does not exist")
         assert index < len(new_list), "bad usage of liste finden: the index is out of range"
@@ -307,7 +306,7 @@ class LGL_Interpreter:
 
         assert isinstance(key,(int,str)), "bad usage of dictionary setzen: the key of the dictionary needs to be a string or an int"
         try:
-            name_dict = self.environment_get(name)
+            name_dict = self._environment_get(name)
         except Exception:
             raise Exception (f'bad usage of dictionary setzen: the dictionary {name} does not exist')
         name_dict[key] = value
@@ -324,7 +323,7 @@ class LGL_Interpreter:
         key = self.interpret(line[2])
 
         try:
-            value = self.environment_get(name)
+            value = self._environment_get(name)
             assert isinstance(value,dict), f"bad usage of dictionary finden: the variable {name} is not a dictionary"
             return value[line[2]]
         except LookupError:
@@ -346,8 +345,8 @@ class LGL_Interpreter:
 
         dictionaries = []
         try:
-            dictionaries.append(self.environment_get(name_first))
-            dictionaries.append(self.environment_get(name_second))
+            dictionaries.append(self._environment_get(name_first))
+            dictionaries.append(self._environment_get(name_second))
         except LookupError:
             raise Exception (f'bad usage of dictionary verbinden: the dictionary you specified does not exist')
 
@@ -368,7 +367,7 @@ class LGL_Interpreter:
         assert not name.startswith("_class"), "names starting with _class are reserved for classes"
 
         value = self.interpret(line[2])
-        self.environment_set(name,value)
+        self._environment_set(name,value)
 
         return None
 
@@ -380,7 +379,7 @@ class LGL_Interpreter:
         name = self.interpret(line[1])
         assert isinstance(name,str), "bad usage of variable_holen: variable name needs to be a string"
         try:
-            return self.environment_get(name)
+            return self._environment_get(name)
         except Exception as e:
             raise Exception (f'bad usage of variable_holen: the variable {name} does not exist')
     
@@ -416,7 +415,7 @@ class LGL_Interpreter:
             arguments.append(self.interpret(arg))
         
         try:
-            func = deepcopy(self.environment_get(name))
+            func = deepcopy(self._environment_get(name))
             assert func[0] == "funktion"
         except LookupError:
             raise NotImplementedError (f'bad usage of funktion_aufrufen: the function {name} does not exist')
@@ -445,7 +444,7 @@ class LGL_Interpreter:
 
         name = self.interpret(line[1])
         assert isinstance(name,str), "bad usage of klasse_erstellen: the name of a class must be a string"
-        assert not self.environment_inspect("class_"+name), f'bad usage of klasse_erstellen: the class {name} does already exist'
+        assert not self._environment_inspect("class_"+name), f'bad usage of klasse_erstellen: the class {name} does already exist'
 
         assemble = {"name":name}
 
@@ -454,7 +453,7 @@ class LGL_Interpreter:
             assert len(method) == 2, f"bad usage of klasse_erstellen: define methods for class {name} properly try: [[<name>,<funktion:name>],[<name>,<funktion>]]"
             method_name = self.interpret(method[0])
             func_name = self.interpret(method[1])
-            assert self.environment_inspect(func_name), f"bad usage of klasse_erstellen: the function {func_name} is not implemented"
+            assert self._environment_inspect(func_name), f"bad usage of klasse_erstellen: the function {func_name} is not implemented"
             assemble[method_name] = func_name
 
         if len(line) == 3:
@@ -462,10 +461,10 @@ class LGL_Interpreter:
         else:
             parent = self.interpret(line[3])
             assert isinstance(parent,(str,type(None))), f"the parent name has to be a string or None"
-            assert self.environment_inspect("class_" + parent), f"the parent {parent} does not exist"
+            assert self._environment_inspect("class_" + parent), f"the parent {parent} does not exist"
 
         assemble["parent"] = parent      
-        self.environment_set("class_" + name, assemble)
+        self._environment_set("class_" + name, assemble)
 
         return None
 
@@ -475,7 +474,7 @@ class LGL_Interpreter:
         
         class_name = self.interpret(line[1])
         assert isinstance(class_name,str), "objekt instanzieren: the name of a class must be a string"
-        assert self.environment_inspect("class_" + class_name), f"bad usage of objekt_instanzieren: the class {class_name} does not exist"
+        assert self._environment_inspect("class_" + class_name), f"bad usage of objekt_instanzieren: the class {class_name} does not exist"
 
         assert isinstance(line[2],list), f"bad usage of objekt_instanzieren: the argumentss for an object instantiation must be given in a list"
         arguments = []
@@ -485,7 +484,7 @@ class LGL_Interpreter:
         assemble = {"class":"class_" + class_name}
 
         try:
-            function_name = self.find_method(assemble["class"],"neu")
+            function_name = self._find_method(assemble["class"],"neu")
             object_variables = self.interpret(["funktion_aufrufen",function_name,arguments])
             assert isinstance(object_variables,dict), f"bad usage of objekt_instanzieren: the class {class_name} did not implement neu to return a dictionary"
             assemble |= object_variables
@@ -500,7 +499,7 @@ class LGL_Interpreter:
 
         object_name = self.interpret(line[1])
         assert isinstance(object_name,str), "bad usage of objekt_methode: the name of an object must be a string"
-        assert self.environment_inspect(object_name), f"bad usage ob objekt_methode: the object {object_name} does not exist"
+        assert self._environment_inspect(object_name), f"bad usage ob objekt_methode: the object {object_name} does not exist"
 
         method_name = self.interpret(line[2])
         assert isinstance(method_name,str), "bad usage of objekt_methode: the name of a method must be a string"
@@ -510,31 +509,30 @@ class LGL_Interpreter:
         for arg in line[3]:
             arguments.append(self.interpret(arg))
 
-        func_name = self.find_method(self.environment_get(object_name)["class"],method_name)
+        func_name = self._find_method(self._environment_get(object_name)["class"],method_name)
         return self.interpret(["funktion_aufrufen",func_name,arguments])
     
     def interpret_klasse_methode(self, line:list):
         """lets classes use their methods not yet implemented"""
         return None
     
-    """[/class/objects methods]"""    
-
-
-    def find_method(self,class_name:str,method_name:str) -> bool:
+    def _find_method(self,class_name:str,method_name:str) -> bool:
         """finds if a method is implemented for a class respectively in its parentclass and returns the functionname"""
-        cla = self.environment_get(class_name)
+        cla = self._environment_get(class_name)
         while True:
             if method_name in cla:
                 return cla[method_name]
             elif cla["parent"] == None:
                 raise NotImplementedError (f'the method {method_name} is not implemented for the class {class_name}')
             else:
-                cla = self.environment_get("class_"+cla["parent"])
+                cla = self._environment_get("class_"+cla["parent"])
+
+    """[/class/objects methods]"""    
+
+
 
 
     
-
-
 
 def main() -> None:
     """get the user input gsc file create a LGL_Interpreter object and start to run the code"""

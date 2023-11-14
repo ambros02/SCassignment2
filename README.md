@@ -8,11 +8,10 @@
 <h3>Usage</h3>
 
 <p>python lgl_interpreter.py file.gsc   | executes the gsc file where file has to be in the same directory as lgl_interpreter.py<br>
-options:
-    <ul>
-        <li>--trace file.log    | writes logging information to file.log</li>
-    </ul>
-<p>
+options:<p>
+        <ul>
+            <li>--trace file.log    | writes logging information to file.log</li>
+        </ul>
 
 <h3>General implementation info</h3>
 

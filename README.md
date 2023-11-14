@@ -38,6 +38,11 @@ It further allows for the definition and calling of functions with parameters. I
 
 <h3>1.2 Use</h3>
 
+<p>The file example_operations.gsc showcases the usage of the implementations requested.<br>
+Firstly a variable cond is set to 0 and a list ist initialized with size 3. After that the basic operations multiplication, division and power are used to populate the first to third elements of the list. The list is then printed by a while loop with the condition cond is not equal to 3. The body of the loop prints the list element at index=cond and then increments cond by 1, resulting in the whole list being printed.<br>
+Further two dictionaries are initialized: first_dict with elements 1:1,2:2,3:3 and second_dict which has elements 1:2,4:first_dict[2] which will result in 1:2,4:2<br>
+The dictionaries are merged into a new dictionary called fused dict, note  that the call was called with first_dict as its first element and therefore it will subscript the keys of second_dict -> resulting in {1:1,2:2,3:3,4:2} which is printed to the console</p>
+
 <h1>2 An Object System</h1>
 
 <h3>2.1 Implementation</h3>

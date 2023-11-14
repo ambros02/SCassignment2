@@ -11,7 +11,7 @@ class Reporter():
         self._file_name = file_name
 
     def report(self) -> None:
-        
+        """flow_control"""
         self._calculate()
         self._present()
 
@@ -31,7 +31,6 @@ class Reporter():
             average = str(result[3]).ljust(offset," ")
             print(f"| {func}| {calls}| {total}| {average}|")
         
-
         return None
 
     def _calculate(self) -> None:
@@ -40,6 +39,7 @@ class Reporter():
         #keys are id of functions, values are list with [name,no_calls,totaltime]
 
         with open(self._file_name,"r") as log_file:
+            #calculate number of calls and runtime
             for log_line in log_file.readlines():
                 log_info = log_line.strip().split(",")
 
@@ -60,6 +60,7 @@ class Reporter():
                     totaltime = (end_time - start_time).total_seconds()
                     total_call_time[id][2] += totaltime
 
+        #transform from seconds to milliseconds and calcualte average time 
         for id,info in total_call_time.items():
             info[2] = info[2]*1000
             info.append(info[2]/info[1])
@@ -69,7 +70,7 @@ class Reporter():
                     
 
     def _set_start(self, id:str, time:datetime) -> None:
-        """set starting times for a given id"""
+        """set starting time for a given id"""
         id = int(id)
         if id in self._event_start_time.keys():
             self._event_start_time[id].append(time)
@@ -79,6 +80,7 @@ class Reporter():
 
 
 def main():
+    """flow control"""
     assert len(sys.argv) == 2, "bad usage try: python reporting.py <filename>"
 
     reporter = Reporter(sys.argv[1])

@@ -35,24 +35,22 @@ class LGL_Interpreter:
         for instruction in self._code:
             self.interpret(instruction)
 
+    def interpret(self, instruction:list) -> None:
+        """Tnterpret the functions"""    
 
-    def _decorator(func_call):
-        """this decorator allows logging for the interpret_funktion_aufrufen method to log information about the functions executed
-        in the gsc file"""
-        def logger(self,instructions):
-            """log functions called with id, name, even and time"""
-            if self.logging:
-                function_name = self.interpret(instructions[1])
-                func_id = str(id(self.environment_get(function_name)))
+        #terminal conditions  
+        if isinstance(instruction,(int,float,str,bool,type(None))):
+            return instruction
+        
+        if isinstance(instruction[0],list): 
+            instruction[0] = self.interpret(instruction[0])
+        assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
+        #get the name of the method to execute then get the actual method and execute
+        method_name = [method for method in dir(self.__class__) if method.replace("interpret_","") == instruction[0]][0]
+        method_body = getattr(self, method_name)
+        return method_body(instruction)
 
-                logging.info(",".join([func_id,function_name,"start",str(datetime.fromtimestamp(time()))]))
-                a = func_call(self,[instructions[0]] + [function_name] + [instructions[2]]) #call with calculated to avoid nesting twice
-                logging.info(",".join([func_id,function_name,"end",str(datetime.fromtimestamp(time()))]))
-                return a
-            else:
-                return func_call(self,instructions)
-                
-        return logger
+    
 
 
 
@@ -95,20 +93,23 @@ class LGL_Interpreter:
 
 
 
-    def interpret(self, instruction:list) -> None:
-        """Tnterpret the functions"""    
+    def _decorator(func_call):
+        """this decorator allows logging for the interpret_funktion_aufrufen method to log information about the functions executed
+        in the gsc file"""
+        def logger(self,instructions):
+            """log functions called with id, name, even and time"""
+            if self.logging:
+                function_name = self.interpret(instructions[1])
+                func_id = str(id(self.environment_get(function_name)))
 
-        #terminal conditions  
-        if isinstance(instruction,(int,str,bool,type(None))):
-            return instruction
-        
-        if isinstance(instruction[0],list): 
-            instruction[0] = self.interpret(instruction[0])
-        assert "interpret_" + str(instruction[0]) in dir(self.__class__), f"Unknown operation: {instruction[0]}"
-        #get the name of the method to execute then get the actual method and execute
-        method_name = [method for method in dir(self.__class__) if method.replace("interpret_","") == instruction[0]][0]
-        method_body = getattr(self, method_name)
-        return method_body(instruction)
+                logging.info(",".join([func_id,function_name,"start",str(datetime.fromtimestamp(time()))]))
+                a = func_call(self,[instructions[0]] + [function_name] + [instructions[2]]) #call with calculated to avoid nesting twice
+                logging.info(",".join([func_id,function_name,"end",str(datetime.fromtimestamp(time()))]))
+                return a
+            else:
+                return func_call(self,instructions)
+                
+        return logger
 
 
 
@@ -361,13 +362,12 @@ class LGL_Interpreter:
         """this method allows to store variables into the self.variables dictionary"""
 
         assert len(line) == 3, "bad usage of variable setzen try: ['variable_setzen','<name:str>',<value>]"
-        assert isinstance(line[1],str), "bad usage of variable setzen: variable name needs to be a string"
         
         name = self.interpret(line[1])
-        value = self.interpret(line[2])
+        assert isinstance(name,str), "bad usage of variable setzen: variable name needs to be a string"
+        assert not name.startswith("_class"), "names starting with _class are reserved for classes"
 
-        #assert not isinstance(line[2],(list,dict)), "to store lists and dictionaries use dictionary/liste_erstellen"
-        #self.environment[-1][line[1]] = line[2]
+        value = self.interpret(line[2])
         self.environment_set(name,value)
 
         return None
@@ -514,7 +514,7 @@ class LGL_Interpreter:
         return self.interpret(["funktion_aufrufen",func_name,arguments])
     
     def interpret_klasse_methode(self, line:list):
-        """lets classes use their methods"""
+        """lets classes use their methods not yet implemented"""
         return None
     
     """[/class/objects methods]"""    

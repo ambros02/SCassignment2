@@ -1,17 +1,17 @@
-1 More Capabilites
-    1.1 Implementation
-        The implementation of the functions "multiplizieren", "dividieren" and "hoch" are   based on the same theory that we have already seen in class. They have a similar structure to the "addieren" and "subtrahieren" functions that we programmed together in the lesson. First, it checks everywhere whether the input in the gsc file is correct. SELF.CALL_CLEAN(LINE)??? The "print" function simply takes
+<h1>1 More Capabilites</h1>
 
-    1.2 Use
+<h3>1.1 Implementation</h3>
 
-2 An Object System
+<h3>1.2 Use</h3>
 
-    2.1 Implementation
+<h1>2 An Object System</h1>
 
-    2.2 Use
+<h3>2.1 Implementation</h3>
 
-3 Tracing
+<h3>2.2 Use</h3>
 
-    3.1 Logging
+<h1>3 Tracing</h1>
 
-    3.2 Reporting
+<h3>3.1 Logging</h3>
+
+<h3>3.2 Reporting</h3>

@@ -1,6 +1,23 @@
 
 
+<h1>LGL_Interpreter Documentation</h1>
 
+<p>The following documentation concerns the implementation of an LGL_interpreter which allows to interpret a Little German Language into python code.<p>
+
+
+
+<h3>General implementation info</h3>
+
+<p>The LGL interpreter was designed as a class for two main reasons. First classes allow inheritance, which increases the scalability possibilities. With a child class the functions of the general LGL language can be extended with more or adapted functionalities. Second classes allow many design patterns, such as decorators or introspection.<br>
+The program starts in the main function where the validity of the command is evaluated. If the trace option is specified the main function will try to write to the file, if it suceeds it will configure the basic logging to this file. This allows to write to the file from within the class without passing the filename.<br>
+The class is used by instantiating an object with a list of executions and an alternativ logging argument to enable logging. The object can then use run to start interpreting the code line by line with the interpret method.<br>
+The interpret method allows int,float,str,bool and Nonetype as terminal values. Otherwhise it will get the name of the instruction and then call the method for it. It only evaluates nested expressions for the first element of the instruction to know which method to call. This implies that all methods have to implement the evaluation of nested expressions. This was decided, since different expressions have different evaluation needs e.g. an expression to instantiate a function does not want the instructions to be evaluated before storing it.<br>
+The class keeps track of variables by adding them to a list of dicitonaries which represent local environments with the first entry being the global scope. To ensure the integrity of the data in the environment 4 functions are defined to interract with the environment. We can set, get, inspect and delete variables from the environments</p>
+
+<h3>Capabilities</h3>
+
+<p>The LGL allows to set and get variables with a string as the name (note names starting with class_ are reserved for classes to avoid name conflicts).<br>
+It further allows for the definition and calling of functions with parameters. If a function with more than one expression in the body is to be specified the seq expression has to be used. The seq expressions iterates through a list of expressions breaking and returning if it sees a retournieren statement. Functions append a new environment where all local variables will be stored. After the execution the local environment is removed.</p>
 
 
 <h1>1 More Capabilites</h1>

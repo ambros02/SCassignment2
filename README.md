@@ -18,7 +18,7 @@ structure of a function and needs parameters and the code to be executed. The pa
 last instruction passed to funktion_erstellen represents the body of a function. At the end a list representing the 
 created function is returned. The funktion_aufrufen calls and executes the function. It has to check if the function
 given is really a function and if the correct number of arguments are passed. Then a local environment is created where
-the function body is executed. After that, the result of the execution is returned</p>
+the function body is executed. After that, the result of the execution is returned.</p>
 <p>The seq function handles sequences of
 instructions. It iterates over the instructions, interpreting each one, and breaks if there is a retournieren statement. 
 The retournieren function returns the value passed from a function.</p>
